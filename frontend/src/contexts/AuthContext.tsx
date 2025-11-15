@@ -44,7 +44,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const login = async (email: string, password: string) => {
-    const resp = await api.post('/auth/login', { username: email, email, password });
+    // Use absolute backend URL as requested; login route only
+    const res = await fetch('https://api.mindspire.org/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: email, email, password })
+    });
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(text || 'Invalid credentials');
+    }
+    const resp = await res.json();
     if (!resp?.user) throw new Error('Invalid credentials');
     const u: User = {
       id: String(resp.user.id),
